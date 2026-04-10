@@ -8,7 +8,7 @@ on:
 jobs:
   upload:
     runs-on: ubuntu-latest
-    timeout-minutes: 30
+    timeout-minutes: 60
 
     steps:
       - name: Checkout repo
@@ -22,7 +22,7 @@ jobs:
       - name: Install system packages
         run: |
           sudo apt-get update -qq
-          sudo apt-get install -y ffmpeg fonts-dejavu fonts-liberation
+          sudo apt-get install -y ffmpeg fonts-dejavu fonts-liberation --no-install-recommends
 
       - name: Install Python packages
         run: pip install -r requirements.txt
