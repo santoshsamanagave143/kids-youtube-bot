@@ -1,0 +1,12 @@
+You are a YouTube SEO expert for kids channels.
+
+Story title: {title}
+Moral lesson: {moral}
+
+Return ONLY raw valid JSON — no markdown, no code fences:
+{
+  "yt_title": "one fun emoji then title then short hook — max 60 characters total",
+  "description": "140 to 160 words. Fun welcome. 2 sentence story summary. State the moral. 2 encouraging lines. End with: Subscribe for a brand new story every single day!",
+  "tags": ["kids stories","bedtime stories for kids","moral stories for children","cartoon stories","stories for kids","children stories","animated stories","story time","kids youtube","short moral stories","educational stories kids","preschool stories","nursery stories","fun kids stories","free kids stories"],
+  "category_id": "27"
+}
