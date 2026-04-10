@@ -5,7 +5,7 @@ import urllib.parse
 import time
 from datetime import date, datetime, timezone, timedelta
 from PIL import Image, ImageDraw, ImageFont
-import google.generativeai as genai
+from google import genai as genai_new
 from google.cloud import texttospeech
 from google.oauth2 import service_account
 from google.oauth2.credentials import Credentials
@@ -13,10 +13,7 @@ from google.auth.transport.requests import Request
 from googleapiclient.discovery import build
 from googleapiclient.http import MediaFileUpload
 
-# ─────────────────────────────────────────────────
-#  API CREDENTIALS — stored as GitHub Secrets
-# ─────────────────────────────────────────────────
-GEMINI_API_KEY        = os.environ.get("GEMINI_API_KEY", "AIzaSyBSDoanmvxL2Wol4hPsziBofj9Nap05EVY")
+GEMINI_API_KEY        = os.environ.get("GEMINI_API_KEY", "")
 GCLOUD_CREDENTIALS    = os.environ.get("GCLOUD_CREDENTIALS", "")
 YOUTUBE_CLIENT_ID     = os.environ.get("YOUTUBE_CLIENT_ID", "")
 YOUTUBE_CLIENT_SECRET = os.environ.get("YOUTUBE_CLIENT_SECRET", "")
@@ -34,14 +31,17 @@ os.makedirs(IMAGES_DIR, exist_ok=True)
 #  STEP 1 — Write today's kids story with Gemini
 # ─────────────────────────────────────────────────
 print("\n📖 STEP 1: Writing today's story...")
-genai.configure(api_key=GEMINI_API_KEY)
-model = genai.GenerativeModel("gemini-2.0-flash-exp")
+gemini_client = genai_new.Client(api_key=GEMINI_API_KEY)
 
 story_prompt = open("prompts/story.txt").read().replace("{date}", str(date.today()))
 
+story = None
 for attempt in range(3):
     try:
-        response = model.generate_content(story_prompt)
+        response = gemini_client.models.generate_content(
+            model="gemini-2.0-flash",
+            contents=story_prompt
+        )
         raw = response.text.strip()
         if raw.startswith("```"):
             raw = raw.split("```")[1]
@@ -54,6 +54,9 @@ for attempt in range(3):
         print(f"  Attempt {attempt+1} failed: {e}")
         time.sleep(3)
 
+if story is None:
+    raise RuntimeError("Failed to generate story after 3 attempts")
+
 # ─────────────────────────────────────────────────
 #  STEP 2 — Write SEO metadata with Gemini
 # ─────────────────────────────────────────────────
@@ -64,9 +67,13 @@ meta_prompt = (
     .replace("{moral}", story["moral"])
 )
 
+meta = None
 for attempt in range(3):
     try:
-        meta_resp = model.generate_content(meta_prompt)
+        meta_resp = gemini_client.models.generate_content(
+            model="gemini-2.0-flash",
+            contents=meta_prompt
+        )
         raw_meta = meta_resp.text.strip()
         if raw_meta.startswith("```"):
             raw_meta = raw_meta.split("```")[1]
@@ -78,6 +85,9 @@ for attempt in range(3):
     except Exception as e:
         print(f"  Attempt {attempt+1} failed: {e}")
         time.sleep(3)
+
+if meta is None:
+    raise RuntimeError("Failed to generate metadata after 3 attempts")
 
 # ─────────────────────────────────────────────────
 #  STEP 3 — Generate voiceover with Google TTS
