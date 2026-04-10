@@ -1,0 +1,1 @@
+prompts/story.txt
