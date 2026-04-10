@@ -5,7 +5,7 @@ import urllib.parse
 import time
 from datetime import date, datetime, timezone, timedelta
 from PIL import Image, ImageDraw, ImageFont
-from google import genai as genai_new
+from openai import OpenAI
 from google.cloud import texttospeech
 from google.oauth2 import service_account
 from google.oauth2.credentials import Credentials
@@ -13,7 +13,7 @@ from google.auth.transport.requests import Request
 from googleapiclient.discovery import build
 from googleapiclient.http import MediaFileUpload
 
-GEMINI_API_KEY        = os.environ.get("GEMINI_API_KEY", "")
+OPENAI_API_KEY        = os.environ.get("OPENAI_API_KEY", "")
 GCLOUD_CREDENTIALS    = os.environ.get("GCLOUD_CREDENTIALS", "")
 YOUTUBE_CLIENT_ID     = os.environ.get("YOUTUBE_CLIENT_ID", "")
 YOUTUBE_CLIENT_SECRET = os.environ.get("YOUTUBE_CLIENT_SECRET", "")
@@ -27,22 +27,24 @@ THUMB_FILE = os.path.join(OUTPUT_DIR, "thumbnail.jpg")
 
 os.makedirs(IMAGES_DIR, exist_ok=True)
 
+client = OpenAI(api_key=OPENAI_API_KEY)
+
 # ─────────────────────────────────────────────────
-#  STEP 1 — Write today's kids story with Gemini
+#  STEP 1 — Write today's kids story with OpenAI
 # ─────────────────────────────────────────────────
 print("\n📖 STEP 1: Writing today's story...")
-gemini_client = genai_new.Client(api_key=GEMINI_API_KEY)
 
 story_prompt = open("prompts/story.txt").read().replace("{date}", str(date.today()))
 
 story = None
 for attempt in range(3):
     try:
-        response = gemini_client.models.generate_content(
-            model="gemini-2.0-flash",
-            contents=story_prompt
+        response = client.chat.completions.create(
+            model="gpt-4o-mini",
+            messages=[{"role": "user", "content": story_prompt}],
+            temperature=0.9
         )
-        raw = response.text.strip()
+        raw = response.choices[0].message.content.strip()
         if raw.startswith("```"):
             raw = raw.split("```")[1]
             if raw.startswith("json"):
@@ -58,7 +60,7 @@ if story is None:
     raise RuntimeError("Failed to generate story after 3 attempts")
 
 # ─────────────────────────────────────────────────
-#  STEP 2 — Write SEO metadata with Gemini
+#  STEP 2 — Write SEO metadata with OpenAI
 # ─────────────────────────────────────────────────
 print("\n🏷️  STEP 2: Writing YouTube metadata...")
 meta_prompt = (
@@ -70,11 +72,12 @@ meta_prompt = (
 meta = None
 for attempt in range(3):
     try:
-        meta_resp = gemini_client.models.generate_content(
-            model="gemini-2.0-flash",
-            contents=meta_prompt
+        meta_resp = client.chat.completions.create(
+            model="gpt-4o-mini",
+            messages=[{"role": "user", "content": meta_prompt}],
+            temperature=0.7
         )
-        raw_meta = meta_resp.text.strip()
+        raw_meta = meta_resp.choices[0].message.content.strip()
         if raw_meta.startswith("```"):
             raw_meta = raw_meta.split("```")[1]
             if raw_meta.startswith("json"):
