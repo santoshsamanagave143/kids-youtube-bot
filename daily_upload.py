@@ -35,7 +35,7 @@ os.makedirs(IMAGES_DIR, exist_ok=True)
 # ─────────────────────────────────────────────────
 print("\n📖 STEP 1: Writing today's story...")
 genai.configure(api_key=GEMINI_API_KEY)
-model = genai.GenerativeModel("gemini-1.5-flash")
+model = genai.GenerativeModel("gemini-2.0-flash")
 
 story_prompt = open("prompts/story.txt").read().replace("{date}", str(date.today()))
 
