@@ -5,7 +5,7 @@ import urllib.parse
 import time
 from datetime import date, datetime, timezone, timedelta
 from PIL import Image, ImageDraw, ImageFont
-from openai import OpenAI
+from groq import Groq
 from google.cloud import texttospeech
 from google.oauth2 import service_account
 from google.oauth2.credentials import Credentials
