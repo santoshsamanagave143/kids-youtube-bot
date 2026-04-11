@@ -13,7 +13,7 @@ from google.auth.transport.requests import Request
 from googleapiclient.discovery import build
 from googleapiclient.http import MediaFileUpload
 
-OPENAI_API_KEY        = os.environ.get("OPENAI_API_KEY", "")
+GROQ_API_KEY = os.environ.get("GROQ_API_KEY", "")
 GCLOUD_CREDENTIALS    = os.environ.get("GCLOUD_CREDENTIALS", "")
 YOUTUBE_CLIENT_ID     = os.environ.get("YOUTUBE_CLIENT_ID", "")
 YOUTUBE_CLIENT_SECRET = os.environ.get("YOUTUBE_CLIENT_SECRET", "")
@@ -27,7 +27,7 @@ THUMB_FILE = os.path.join(OUTPUT_DIR, "thumbnail.jpg")
 
 os.makedirs(IMAGES_DIR, exist_ok=True)
 
-client = OpenAI(api_key=OPENAI_API_KEY)
+client = Groq(api_key=GROQ_API_KEY)
 
 # ─────────────────────────────────────────────────
 #  STEP 1 — Write today's kids story with OpenAI
@@ -40,7 +40,7 @@ story = None
 for attempt in range(3):
     try:
         response = client.chat.completions.create(
-            model="gpt-4o-mini",
+            model="llama3-8b-8192",
             messages=[{"role": "user", "content": story_prompt}],
             temperature=0.9
         )
